@@ -1,0 +1,5 @@
+{
+  "name" : "floxim/module-media",
+  "description" : "Floxim media module.",
+  "type" : "floxim-module"
+}
