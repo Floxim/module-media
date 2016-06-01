@@ -1,5 +1,7 @@
 .image-list {
-    
+    &__item {
+        line-height:0px;
+    }
 }
 
 .image-list__img {
