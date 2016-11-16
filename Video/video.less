@@ -49,8 +49,13 @@
     }
     
     
-    .floxim--ui--hidden--popup & #__video iframe {
-        height:90vh;
-        width:90vw;
+    .floxim--ui--hidden--popup & {
+        #__video {
+            line-height:0;
+        }
+        #__video iframe {
+            min-height:85vh;
+            min-width:85vw;
+        }
     }
 }
