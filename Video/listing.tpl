@@ -8,7 +8,7 @@
         
         <a href="#{$popup_id /}" fx:e="thumbnail" data-source="{$source | htmlspecialchars /}">
             <span fx:e="icon" class="{= fx::icon('fa play-circle') /}"></span>
-            <img fx:e="img" src="{$image | 'max-width:500' /}" />
+            <img fx:e="img" src="{$image | 'max-width:800' /}" />
         </a>
         
         {apply floxim.ui.hidden:popup with  $popup_id = $popup_id, $size = 'max'}
