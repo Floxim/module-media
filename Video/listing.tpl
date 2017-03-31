@@ -1,6 +1,7 @@
 <div fx:template="list" fx:b="list" fx:of="list">
     {css}video.less{/css}
     {js}video.js{/js}
+    {*
     <div fx:item fx:b="video">
         {set $embed = $item.getEmbedCode() /}
         {set $popup_id = 'popup-video-' . $item.id /}
@@ -19,4 +20,9 @@
             {/$}
         {/apply}
     </div>
+    *}
+</div>
+    
+<div fx:template="player" fx:b="video provider_{$item.provider /}">
+    <div fx:e="video">{$item.getIframe() /}</div>
 </div>

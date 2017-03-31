@@ -3,75 +3,87 @@ namespace Floxim\Media\Video;
 
 use Floxim\Floxim\System\Fx as fx;
 
+/*
+ * For tests:
+ * https://www.youtube.com/watch?v=D457b9QZ0RY
+ * https://www.youtube.com/watch?v=Z8fkFKC0fV8
+ * https://vimeo.com/204776636
+ */
+
 class Entity extends \Floxim\Main\Content\Entity
 {
     
-    public function getEmbedCode()
+    protected $provider = null;
+    
+    public function getProvider()
     {
-        $s = $this['source'];
-        preg_match('~<iframe.+?</iframe>~is', $s, $iframe);
-        if ($iframe) {
-            return $iframe[0];
+        if (is_null($this->provider)) {
+            $this->provider = Provider::find($this['source']);
         }
-        $oembed = $this['oembed_data'];
-        if ($oembed && isset($oembed['html'])) {
-            return $oembed['html'];
-        }
-        /*
-        $s = trim($s);
-        preg_match("~https?://([^/]+)~i", $s, $host);
-        if ($host) {
-            switch ($host[1]) {
-                case 'vimeo.com':
-                    $url = 'https://vimeo.com/api/oembed.json?url='.urlencode($s);
-                    $data = fx::http()->get($url);
-                    $data = json_decode($data, true);
-                    return $data['html'];
-                    break;
-            }
-        }
-        return '';
-         * 
-         */
+        return $this->provider;
     }
     
-    protected static function getOEmbedData($url)
+    public function getIframe()
     {
-        preg_match("~https?://([^/]+)~i", $url, $host);
-        switch ($host[1]) {
-            case 'vimeo.com':
-                $oembed_url = 'https://vimeo.com/api/oembed.json?url='.urlencode($url);
-                $data = fx::http()->get($oembed_url);
-                $data = json_decode($data, true);
-                return $data;
-        }
+        return $this->getProvider()->getIframe();
     }
     
-    public function beforeSave() {
-        parent::beforeSave();
-        if ($this->isModified('source') || true) {
-            $s = trim($this['source']);
-            $this['oembed_data'] = self::getOEmbedData($s);
-            fx::cdebug($this);
+    public function getBoxFields() {
+        $res = parent::getBoxFields();
+        $res[]= [
+            'keyword' => 'source',
+            'template' => 'floxim.media.video:player',
+            'name' => 'Плеер'
+        ];
+        return $res;
+    }
+ 
+
+    public function loadOEmbedData()
+    {
+        $url = $this->getRemoteUrl();
+        preg_match("~https?://(?:www\.)?([^/]+)~i", $url, $host);
+        $host = $host[1];
+        if (!isset(self::$oembed_urls[$host])) {
+            return false;
         }
+        $oembed_url = sprintf(self::$oembed_urls[$host], urlencode($url));
+        $data = fx::http()->get($oembed_url);
+        $data = json_decode($data, true);
+        $this['oembed_data'] = $data;
+        return $data;
     }
     
-    public function _getProvider()
+    public function getOEmbedData()
     {
-        $oe = $this['oembed_data'];
-        if (!$oe || !isset($oe['provider_name'])) {
-            return;
+        if (!$this->isModified('source')) {
+            return $this['oembed_data'];
         }
-        return mb_strtolower($oe['provider_name']);
-    }
-    
-    public function addPlayerJs()
-    {
         
-        switch ($this['provider']){
-            case 'vimeo':
-                fx::page()->addJsFile('https://player.vimeo.com/api/player.js');
-                break;
+        $provider = $this->getProvider();
+        if ($provider->isSame($this->getOld('source'))) {
+            return $this['oembed_data'];
         }
+        
+        $res = $provider->getMetaData();
+        $this['oembed_data'] = $res;
+        return $res;
+    }
+    
+    public function syncFields() 
+    {
+        $oe = $this->getOEmbedData();
+        $res = [];
+        if (isset($oe['title'])) {
+            $res['name'] = $oe['title'];
+        }
+        if (isset($oe['thumbnail_url'])) {
+            $res['image'] = $oe['thumbnail_url'];
+        }
+        if (isset($oe['description'])) {
+            $res['description'] = $oe['description'];
+        }
+        $res['iframe'] = $this->getIframe();
+        return $res;
     }
 }
