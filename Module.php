@@ -11,7 +11,10 @@ class Module extends \Floxim\Floxim\Component\Module\Entity {
         if (fx::isAdmin()) {
             fx::listen('content_form_ready', function($e) {
                 if ($e['entity']->isInstanceOf('floxim.media.video')) {
-                    fx::page()->addJsFile(fx::path('@module/Floxim/Media/Video/video-admin.js'));
+                    fx::page()->addJs(
+                        [fx::path('@module/Floxim/Media/Video/video-admin.js')],
+                        ['to' => 'admin']
+                    );
                 }
             });
         }
