@@ -2,8 +2,12 @@
     
 $('html').on('fx_content_form_ready', function(e) {
     var $form = $(e.target),
-        $source = $('[name="content[source]"]', $form),
-        get_remote_url = function(){
+        $source = $('[name="content[source]"]', $form);
+        
+    if ($source.length === 0) {
+        return;
+    }
+    var get_remote_url = function(){
             var v = $source.val(),
                 m = v.match(/https?:\/\/[^\s\"]+/);
             return m ? m[0] : '';
